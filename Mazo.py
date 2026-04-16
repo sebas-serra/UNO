@@ -7,34 +7,18 @@ class Baraja():
         self.total = []
 
     def crearmazo(self):
-        for i in range(1, 10):
-            for j in ["Azul", "Rojo", "Verde", "Amarillo"] * 2:
-                todaslascartas = Carta.Cartas(i, j, )
-                self.total.append(todaslascartas)
+        for numero in range(1, 10):
+            for color in ["Azul", "Rojo", "Verde", "Amarillo"] * 2:
+                self.total.append(Carta.Cartas(numero, color))
 
-        for i in range(0, 2):
-            i = "@"
-            for j in ["negro"] * 2:
-                reversa = Carta.Cartas(i, j, )
-                self.total.append(reversa)
+        for _ in range(4):
+            self.total.append(Carta.Cartas("@", "negro"))   # Comodín color
+            self.total.append(Carta.Cartas("+4", "negro"))  # +4
 
-        for i in range(0, 2):
-            i = "+2"
-            for j in ["Azul", "Rojo", "Verde", "Amarillo"] * 2:
-                masDos = Carta.Cartas(i, j, )
-                self.total.append(masDos)
-
-        for i in range(0, 2):
-            i = "*"
-            for j in ["Azul", "Rojo", "Verde", "Amarillo"] * 2:
-                pase = Carta.Cartas(i, j, )
-                self.total.append(pase)
-
-        for i in range(0, 2):
-            i = "+4"
-            for j in ["negro"] * 2:
-                masCuatro = Carta.Cartas(i, j, )
-                self.total.append(masCuatro)
+        for color in ["Azul", "Rojo", "Verde", "Amarillo"]:
+            for _ in range(2):
+                self.total.append(Carta.Cartas("+2", color))
+                self.total.append(Carta.Cartas("*", color))
 
         rd.shuffle(self.total)
 

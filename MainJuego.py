@@ -36,7 +36,7 @@ class Juego:
         self.bot.pack(anchor="s")
 
     def iniciarjuego(self):
-        for _ in range(2):
+        for _ in range(4):
             humano = Jugador.Player()
             humano.iniciar(self.coso)
             self.jugadores.append(humano)
@@ -80,45 +80,51 @@ class Juego:
         self.partida.mostrarCarta(Pila).pack()
 
     def dejarCarta(self, carta):
-        if carta.comprobar(self.partida):
-            self.partida = carta
-            self.jugadorActual.mano.remove(carta)
-            if self.partida.numero == "+2":
-                self.jugadorActual.robar(self.coso)
-                self.jugadorActual.robar(self.coso)
-                self.juegoReal()
-                self.juegoReal()
-            elif self.partida.numero == "+4":
-                [self.jugadorActual.robar(self.coso)] * 4
-                self.eligeColor()
-                self.juegoReal()
-            elif self.partida.numero == "@":
-                self.eligeColor()
-            elif self.partida.numero == "*":
-                self.juegoReal()
-                self.juegoReal()
-            else:
-                self.juegoReal()
+            if carta.comprobar(self.partida):
+                    self.jugadorActual.mano.remove(carta)
+                    self.partida = carta
 
-        else:
-            messagebox.showwarning("no", "carta no valida")
+                    if self.partida.numero == "+2":
+                        siguiente = self.jugadores[(self.turno + 1) % len(self.jugadores)]
+                        siguiente.robar(self.coso)
+                        siguiente.robar(self.coso)
+                        self.juegoReal()
+
+                    elif self.partida.numero == "+4":
+                        siguiente = self.jugadores[(self.turno + 1) % len(self.jugadores)]
+                        for _ in range(4):
+                            siguiente.robar(self.coso)
+                        self.eligeColor()
+
+                    elif self.partida.numero == "@":
+                        self.eligeColor() 
+
+                    elif self.partida.numero == "*":
+                        self.juegoReal()
+                        self.juegoReal()
+
+                    else:
+                        self.juegoReal()
+
+            else:
+                messagebox.showwarning("no", "Carta no válida")
 
     def eligeColor(self):
         ventanaA = tk.Toplevel()
         ventanaA.title("Elige un color")
-        ventanaA.geometry("700x500")
+        ventanaA.geometry("300x250")
         ventanaA.config(bg="white")
+        ventanaA.grab_set()
 
-        tk.Label(ventanaA, text="Selecciona un color:",
-                 font=("Arial", 14)).pack()
+        tk.Label(ventanaA, text="Selecciona un color:", font=("Arial", 14)).pack(pady=10)
 
         colores = ["red", "blue", "green", "yellow"]
-
         for color in colores:
             tk.Button(
                 ventanaA, text=color, bg=color, font=("Arial", 12),
                 command=lambda c=color: self.cambiaColor(c, ventanaA)
             ).pack(pady=5, fill="x", padx=20)
+
 
     def cambiaColor(self, color, ventana):
         colores_validos = {
@@ -144,22 +150,22 @@ class Juego:
         self.mostrar_cartas(self.jugadorActual)
 
     def juegoReal(self):
-        self.turno = (self.turno + 1) % len(self.jugadores)
-        self.jugadorActual = self.jugadores[self.turno]
-        for widget in mesa.winfo_children():
-            widget.destroy()
-        turno = tk.Label(juegoUNO, text="Cambiando de turno", font=(
-            "Arial", 14), bg="yellow")
-        turno.pack()
+            for jugador in self.jugadores:
+                if len(jugador.mano) == 0:
+                    self.hola.destroy()
+                    messagebox.showinfo("Fin del juego", "¡Alguien ha ganado!")
+                    self.reiniciar_juego()
+                    return
 
-        juegoUNO.after(2000, lambda: self.actualizar(turno))
+            self.turno = (self.turno + 1) % len(self.jugadores)
+            self.jugadorActual = self.jugadores[self.turno]
 
-        for jugador in self.jugadores:
-            if len(jugador.mano) == 0:
-                self.hola.destroy()
-                messagebox.showinfo("Fin del juego", "Alguien ha ganado!")
-                self.reiniciar_juego()
-                return
+            for widget in mesa.winfo_children():
+                widget.destroy()
+
+            turno = tk.Label(juegoUNO, text="Cambiando de turno", font=("Arial", 14), bg="yellow")
+            turno.pack()
+            juegoUNO.after(2000, lambda: self.actualizar(turno))
 
     def reiniciar_juego(self):
         for widget in mesa.winfo_children():
