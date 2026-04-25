@@ -1,4 +1,5 @@
 import streamlit as st
+import time
 import Mazo
 import Jugador
 
@@ -47,6 +48,8 @@ if "ganador" not in st.session_state:
     st.session_state.ganador = None
 if "num_jugadores" not in st.session_state:
     st.session_state.num_jugadores = 4
+if "mensaje_tiempo" not in st.session_state:
+    st.session_state.mensaje_tiempo = None
 
 
 def iniciar_juego(jug):
@@ -80,6 +83,7 @@ def jugar_carta(idx):
     carta = jugador.mano[idx]
     if not carta.comprobar(st.session_state.partida):
         st.session_state.mensaje = "❌ Carta no válida"
+        st.session_state.mensaje_tiempo = time.time()
         return
     jugador.mano.pop(idx)
     st.session_state.partida = carta
@@ -112,7 +116,7 @@ def pasar_turno():
 
 
 
-st.title("Juego UNO")
+# st.title("Juego UNO")
 
 if not st.session_state.juego_iniciado:
     st.markdown("### Bienvenido al UNO")
@@ -171,12 +175,21 @@ else:
 
     with col_der:
         turno = st.session_state.turno
-        st.markdown(f"**Turno actual:** Jugador {turno + 1}")
-        if st.session_state.mensaje:
-            st.info(st.session_state.mensaje)
-        if st.button("Pasar turno (robar carta)", type="secondary"):
-            pasar_turno()
-            st.rerun()
+        st.markdown(f"<h2 style='text-align:center'>Turno actual:</h2> <h3 style='text-align:center'>Jugador {turno + 1}</h3>", unsafe_allow_html=True)
+        if st.session_state.mensaje and st.session_state.mensaje_tiempo:
+            if time.time() - st.session_state.mensaje_tiempo < 1.5:
+                st.error(st.session_state.mensaje)
+                time.sleep(0.2)
+                st.rerun()
+            else:
+                st.session_state.mensaje = ""
+                st.session_state.mensaje_tiempo = None
+
+        _, centro, _ = st.columns([4, 5.8, 4])
+        with centro:
+            if st.button("Pasar turno (robar carta)", type="secondary"):
+                pasar_turno()
+                st.rerun()
 
     st.divider()
 
