@@ -4,6 +4,44 @@ import Mazo
 import Jugador
 
 st.set_page_config(page_title="UNO", layout="wide")
+st.markdown("""
+    <style>
+    .carta {
+        display: inline-block;
+        border-radius: 10px;
+        padding: 20px 30px;
+        margin: 5px;
+        font-size: 50px;
+        font-weight: bold;
+        border: 3px solid white;
+        min-width: 55px;
+        text-align: center;
+        transition: transform 0.15s ease;
+        cursor: pointer;
+    }
+    .carta:hover {
+        transform: scale(1.3) translateY(-10px);
+    }
+            
+    .carta-pila {
+        display: inline-block;
+        border-radius: 10px;
+        padding: 20px 30px;
+        margin: 5px;
+        font-size: 50px;
+        font-weight: bold;
+        border: 3px solid white;
+        min-width: 55px;
+        text-align: center;
+    }
+            
+    div[data-testid="stColumn"] div[data-testid="stButton"] button {
+        width: 100%;
+        font-size: 30px;
+        padding: 13px 30px;
+}
+    </style>
+""", unsafe_allow_html=True)
 
 COLORES = {
     "Azul": "#1e90ff",
@@ -18,14 +56,12 @@ jugadores = 2
 def color_texto(color):
     return "white" if color in ["Azul", "Rojo", "Verde", "negro"] else "black"
 
-def carta_html(numero, color):
+def carta_html(numero, color, idx=None, pila=False):
     bg = COLORES.get(color, "#ccc")
     txt = color_texto(color)
+    clase = "carta-pila" if pila else "carta"
     return f"""
-        <div style='display:inline-block; background:{bg}; color:{txt};
-        border-radius:10px; padding:10px 18px; margin:5px;
-        font-size:28px; font-weight:bold; border: 3px solid white;
-        min-width:55px; text-align:center;'>
+        <div class='{clase}' style='background:{bg}; color:{txt};'>
         {numero}
         </div>
     """
@@ -169,7 +205,7 @@ else:
         st.markdown("<h1 style='text-align:center'>Pila</h1>", unsafe_allow_html=True)
         p = st.session_state.partida
         st.markdown(
-            f"<div style='text-align:center'>{carta_html(p.numero, p.color)}</div>",
+            f"<div style='text-align:center'>{carta_html(p.numero, p.color, pila=True)}</div>",
             unsafe_allow_html=True
         )
 
@@ -193,13 +229,12 @@ else:
 
     st.divider()
 
-
-    st.markdown(f"###  Tu mano — Jugador {st.session_state.turno + 1}")
+    st.markdown(f"### Tu mano — Jugador {st.session_state.turno + 1}")
     jugador = jugador_actual()
     cols = st.columns(max(len(jugador.mano), 1))
     for i, carta in enumerate(jugador.mano):
-        with cols[i]:
-            st.markdown(carta_html(carta.numero, carta.color), unsafe_allow_html=True)
-            if st.button("Jugar", key=f"carta_{i}"):
-                jugar_carta(i)
-                st.rerun()
+            with cols[i]:
+                st.markdown(carta_html(carta.numero, carta.color, idx=i), unsafe_allow_html=True)
+                if st.button("Jugar", key=f"carta_{i}", help="intente hacer que al clickear en la carta se jugara pero no pude xd"):
+                    jugar_carta(i)
+                    st.rerun()
