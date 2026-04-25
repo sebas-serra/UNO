@@ -1,182 +1,198 @@
-import Mazo
+import streamlit as st
+import Mazo 
 import Jugador
-import tkinter as tk
-from tkinter import messagebox
+
+st.set_page_config(page_title="UNO", layout="wide")
+
+COLORES = {
+    "Azul": "#1e90ff",
+    "Rojo": "#e63946",
+    "Verde": "#2dc653",
+    "Amarillo": "#ffd166",
+    "negro": "#352e48"
+}
+
+def color_texto(color):
+    return "white" if color in ["Azul", "Rojo", "Verde", "negro"] else "black"
+
+def carta_html(numero, color):
+    bg = COLORES.get(color, "#ccc")
+    txt = color_texto(color)
+    return f"""
+        <div style='display:inline-block; background:{bg}; color:{txt};
+        border-radius:10px; padding:10px 18px; margin:5px;
+        font-size:28px; font-weight:bold; border: 3px solid white;
+        min-width:55px; text-align:center;'>
+        {numero}
+        </div>
+    """
+
+if "juego_iniciado" not in st.session_state:
+    st.session_state.juego_iniciado = False
+if "jugadores" not in st.session_state:
+    st.session_state.jugadores = []
+if "coso" not in st.session_state:
+    st.session_state.coso = None
+if "partida" not in st.session_state:
+    st.session_state.partida = None
+if "turno" not in st.session_state:
+    st.session_state.turno = 0
+if "mensaje" not in st.session_state:
+    st.session_state.mensaje = ""
+if "eligiendo_color" not in st.session_state:
+    st.session_state.eligiendo_color = False
+if "ganador" not in st.session_state:
+    st.session_state.ganador = None
 
 
-juegoUNO = tk.Tk()
-juegoUNO.title("UNO")
-juegoUNO.geometry("700x500")
-juegoUNO.config(bg="#845b5b")
 
-tk.Label(juegoUNO, font=("Arial", 12), text="Pila").pack()
+def iniciar_juego():
+    mazo = Mazo.Baraja()
+    mazo.crearmazo()
+    jugadores = []
+    for _ in range(4):
+        p = Jugador.Player()
+        p.iniciar(mazo)
+        jugadores.append(p)
+    st.session_state.coso = mazo
+    st.session_state.jugadores = jugadores
+    st.session_state.partida = mazo.tomarcarta()
+    st.session_state.turno = 0
+    st.session_state.juego_iniciado = True
+    st.session_state.mensaje = "Juego iniciado Turno del Jugador 1"
+    st.session_state.ganador = None
 
-Pila = tk.Frame(juegoUNO, bg="#845b5b", width=100,
-                height=150, relief="ridge", border=4)
-Pila.pack(anchor="n")
 
 
-tk.Label(juegoUNO, font=("Arial", 12), text="Mano del jugador").pack()
-
-mesa = tk.Frame(juegoUNO, bg="#845b5b", width=400,
-                height=150, relief="ridge", border=4)
-mesa.pack(anchor="n")
 
 
-class Juego:
+def jugador_actual():
+    return st.session_state.jugadores[st.session_state.turno]
 
-    def __init__(self):
-        self.jugadores = []
-        self.coso = Mazo.Baraja()
-        self.partida = None
-        self.coso.crearmazo()
-        self.turno = 0
-        self.bot = tk.Button(juegoUNO, font=("Arial", 18), text="Iniciar juego", bg="#16ee51",
-                             command=self.iniciarjuego)
-        self.bot.pack(anchor="s")
 
-    def iniciarjuego(self):
+
+def avanzar_turno(saltar=False):
+    for i, jugador in enumerate(st.session_state.jugadores):
+        if len(jugador.mano) == 0:
+            st.session_state.ganador = i + 1
+            return
+    salto = 2 if saltar else 1
+    st.session_state.turno = (st.session_state.turno + salto) % len(st.session_state.jugadores)
+    st.session_state.mensaje = f"Turno del Jugador {st.session_state.turno + 1}"
+
+
+
+def jugar_carta(id):
+    jugador = jugador_actual()
+    carta = jugador.mano[id]
+    if not carta.comprobar(st.session_state.partida):
+        st.session_state.mensaje = "Carta no válida"
+        return
+
+    jugador.mano.pop(id)
+    st.session_state.partida = carta
+
+    if carta.numero == "+2":
+        siguiente = st.session_state.jugadores[(st.session_state.turno + 1) % len(st.session_state.jugadores)]
+        siguiente.robar(st.session_state.coso)
+        siguiente.robar(st.session_state.coso)
+        avanzar_turno()
+
+
+    elif carta.numero == "+4":
+        siguiente = st.session_state.jugadores[(st.session_state.turno + 1) % len(st.session_state.jugadores)]
         for _ in range(4):
-            humano = Jugador.Player()
-            humano.iniciar(self.coso)
-            self.jugadores.append(humano)
-            self.partida = self.coso.tomarcarta()
-        self.bot.destroy()
-        self.hola = tk.Button(juegoUNO, font=("Arial", 18), text="Pasar turno", bg="#118beb",
-                              command=self.pasarTurno)
-        self.hola.pack(anchor="s")
-        self.juegoReal()
-
-    def mostrar_cartas(self, jugadorActual):
-
-        isinstance(jugadorActual, Jugador.Player)
-        for widget in mesa.winfo_children():
-            widget.destroy()
-        for posicion, card in enumerate(jugadorActual.mano, start=0):
-            boton = card.mostrarCarta(mesa)
-            boton.config(
-                command=lambda eleccion=card: self.dejarCarta(eleccion))
-            fila = posicion // 7
-            columna = posicion % 7
-
-            boton.grid(row=fila, column=columna)
-
-            boton.bind("<Enter>", lambda event,
-                       b=boton: self.aumentar_carta(b))
-            boton.bind("<Leave>", lambda event, b=boton: self.reducir_carta(b))
-
-    def aumentar_carta(self, boton):
-        boton.config(font=(
-            "Arial", 70))
-
-    def reducir_carta(self, boton):
-        boton.config(font=(
-            "Arial", 46))
-
-    def actualizar_pila(self):
-        for widget in Pila.winfo_children():
-            widget.destroy()
-
-        self.partida.mostrarCarta(Pila).pack()
-
-    def dejarCarta(self, carta):
-            if carta.comprobar(self.partida):
-                    self.jugadorActual.mano.remove(carta)
-                    self.partida = carta
-
-                    if self.partida.numero == "+2":
-                        siguiente = self.jugadores[(self.turno + 1) % len(self.jugadores)]
-                        siguiente.robar(self.coso)
-                        siguiente.robar(self.coso)
-                        self.juegoReal()
-
-                    elif self.partida.numero == "+4":
-                        siguiente = self.jugadores[(self.turno + 1) % len(self.jugadores)]
-                        for _ in range(4):
-                            siguiente.robar(self.coso)
-                        self.eligeColor()
-
-                    elif self.partida.numero == "@":
-                        self.eligeColor() 
-
-                    elif self.partida.numero == "*":
-                        self.juegoReal()
-                        self.juegoReal()
-
-                    else:
-                        self.juegoReal()
-
-            else:
-                messagebox.showwarning("no", "Carta no válida")
-
-    def eligeColor(self):
-        ventanaA = tk.Toplevel()
-        ventanaA.title("Elige un color")
-        ventanaA.geometry("300x250")
-        ventanaA.config(bg="white")
-        ventanaA.grab_set()
-
-        tk.Label(ventanaA, text="Selecciona un color:", font=("Arial", 14)).pack(pady=10)
-
-        colores = ["red", "blue", "green", "yellow"]
-        for color in colores:
-            tk.Button(
-                ventanaA, text=color, bg=color, font=("Arial", 12),
-                command=lambda c=color: self.cambiaColor(c, ventanaA)
-            ).pack(pady=5, fill="x", padx=20)
+            siguiente.robar(st.session_state.coso)
+        st.session_state.eligiendo_color = True
+        avanzar_turno()
 
 
-    def cambiaColor(self, color, ventana):
-        colores_validos = {
-            "red": "Rojo",
-            "blue": "Azul",
-            "green": "Verde",
-            "yellow": "Amarillo"
-        }
+    elif carta.numero == "@":
+        st.session_state.eligiendo_color = True
+        avanzar_turno()
 
-        if color in colores_validos:
+    elif carta.numero == "*":
+        avanzar_turno(saltar=True)
 
-            self.partida.color = colores_validos[color]
-            ventana.destroy()
-            self.juegoReal()
+    else:
+        avanzar_turno()
 
-    def pasarTurno(self):
-        self.jugadorActual.robar(self.coso)
-        self.juegoReal()
+def elegir_color(color):
+    st.session_state.partida.color = color
+    st.session_state.eligiendo_color = False
+    avanzar_turno()
 
-    def actualizar(self, turno):
-        turno.destroy()
-        self.actualizar_pila()
-        self.mostrar_cartas(self.jugadorActual)
-
-    def juegoReal(self):
-            for jugador in self.jugadores:
-                if len(jugador.mano) == 0:
-                    self.hola.destroy()
-                    messagebox.showinfo("Fin del juego", "¡Alguien ha ganado!")
-                    self.reiniciar_juego()
-                    return
-
-            self.turno = (self.turno + 1) % len(self.jugadores)
-            self.jugadorActual = self.jugadores[self.turno]
-
-            for widget in mesa.winfo_children():
-                widget.destroy()
-
-            turno = tk.Label(juegoUNO, text="Cambiando de turno", font=("Arial", 14), bg="yellow")
-            turno.pack()
-            juegoUNO.after(2000, lambda: self.actualizar(turno))
-
-    def reiniciar_juego(self):
-        for widget in mesa.winfo_children():
-            widget.destroy()
-        for widget in Pila.winfo_children():
-            widget.destroy()
-
-        self.__init__()
+def pasar_turno():
+    jugador_actual().robar(st.session_state.coso)
+    avanzar_turno()
 
 
-uno = Juego()
 
 
-juegoUNO.mainloop()
+
+st.title("Juego UNO")
+
+if not st.session_state.juego_iniciado:
+    st.markdown("### Bienvenido al UNO")
+    if st.button("Iniciar juego", type="primary"):
+        iniciar_juego()
+        st.rerun()
+
+else:
+    if st.session_state.ganador:
+        st.success(f"🏆 ¡El Jugador {st.session_state.ganador} ha ganado!")
+        if st.button("Jugar de nuevo"):
+            iniciar_juego()
+            st.rerun()
+        st.stop()
+
+    st.markdown("### Carta en la pila")
+    p = st.session_state.partida
+    st.markdown(carta_html(p.numero, p.color), unsafe_allow_html=True)
+
+    st.divider()
+
+
+    if st.session_state.eligiendo_color:
+        st.markdown("### 🎨 Elige un color")
+        cols = st.columns(4)
+        for col, (nombre, hex_color) in zip(cols, [("Rojo","Rojo"),("Azul","Azul"),("Verde","Verde"),("Amarillo","Amarillo")]):
+            with col:
+                if st.button(nombre, key=f"color_{nombre}"):
+                    elegir_color(nombre)
+                    st.rerun()
+        st.stop()
+
+    # Turno actual
+    turno = st.session_state.turno
+    st.markdown(f"### 👤 Turno: Jugador {turno + 1}")
+    if st.session_state.mensaje:
+        st.info(st.session_state.mensaje)
+
+
+
+    st.markdown("#### Tu mano:")
+    jugador = jugador_actual()
+    cols = st.columns(max(len(jugador.mano), 1))
+    for i, carta in enumerate(jugador.mano):
+        with cols[i]:
+            st.markdown(carta_html(carta.numero, carta.color), unsafe_allow_html=True)
+            if st.button("Jugar", key=f"carta_{i}"):
+                jugar_carta(i)
+                st.rerun()
+
+
+    st.divider()
+    st.markdown("#### Otros jugadores:")
+    otros_cols = st.columns(3)
+    for i, jugador_otro in enumerate(st.session_state.jugadores):
+        if i == turno:
+            continue
+        with otros_cols[i % 3]:
+            st.markdown(f"**Jugador {i+1}:** {len(jugador_otro.mano)} cartas")
+
+    # Pasar turno
+    st.divider()
+    if st.button("Pasar turno (robar carta)", type="secondary"):
+        pasar_turno()
+        st.rerun()
