@@ -22,6 +22,10 @@ st.markdown("""
     .carta:hover {
         transform: scale(1.3) translateY(-10px);
     }
+    
+    button:hover {
+        transform: scale(1.3) translateY(-5px);
+    }
             
     .carta-pila {
         display: inline-block;
@@ -38,8 +42,20 @@ st.markdown("""
     div[data-testid="stColumn"] div[data-testid="stButton"] button {
         width: 100%;
         font-size: 30px;
-        padding: 13px 30px;
+        padding: 13px 30px; 
+        margin-top: 12px
 }
+            
+    button{
+        transition: transform 0.15s ease;
+            }
+
+
+    .boton-seleccionado button {
+    background-color: red !important;
+    color: white !important;
+    border: 2px solid darkred !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -161,9 +177,15 @@ if not st.session_state.juego_iniciado:
     cols = st.columns(3)
     for col, num in zip(cols, ["2", "3", "4"]):
         with col:
+            seleccionado = st.session_state.num_jugadores == int(num)
+            if seleccionado:
+                st.markdown('<div class="boton-seleccionado">', unsafe_allow_html=True)
             if st.button(num, key=f"btn_{num}"):
                 st.session_state.num_jugadores = int(num)
                 st.rerun()
+            if seleccionado:
+                st.markdown('</div>', unsafe_allow_html=True)
+
 
     if st.button("Iniciar juego", type="primary"):
         iniciar_juego(st.session_state.num_jugadores)
@@ -194,12 +216,12 @@ else:
     col_izq, col_centro, col_der = st.columns([2, 1, 2])
 
     with col_izq:
-        st.markdown("### Otros jugadores")
+        st.markdown("<h2>Otros jugadores</h2>", unsafe_allow_html=True)
         turno = st.session_state.turno
         for i, jugador_otro in enumerate(st.session_state.jugadores):
             if i == turno:
                 continue
-            st.markdown(f"**Jugador {i+1}:** {len(jugador_otro.mano)} cartas")
+            st.markdown(f"<h4>Jugador {i+1}: {len(jugador_otro.mano)} cartas </h4>", unsafe_allow_html=True)
 
     with col_centro:
         st.markdown("<h1 style='text-align:center'>Pila</h1>", unsafe_allow_html=True)
@@ -229,7 +251,7 @@ else:
 
     st.divider()
 
-    st.markdown(f"### Tu mano — Jugador {st.session_state.turno + 1}")
+    st.markdown(f"<h2 style='margin:0 0 20px 0'>Tu mano — Jugador {st.session_state.turno + 1}</h2>" , unsafe_allow_html=True)
     jugador = jugador_actual()
     cols = st.columns(max(len(jugador.mano), 1))
     for i, carta in enumerate(jugador.mano):
