@@ -1,3 +1,5 @@
+# Deployment: https://fvf42p9fjzqwncyt3ncp69.streamlit.app/
+
 # Pantalla principal:
 <img width="871" height="664" alt="image" src="https://github.com/user-attachments/assets/f134eefd-80d7-441e-9217-73b6b0b261e5" />
 
