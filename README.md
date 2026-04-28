@@ -1,7 +1,33 @@
-# Deployment: https://fvf42p9fjzqwncyt3ncp69.streamlit.app/
+# 🃏 Juego UNO
 
-# Pantalla principal:
-<img width="871" height="664" alt="image" src="https://github.com/user-attachments/assets/f134eefd-80d7-441e-9217-73b6b0b261e5" />
+## Descripción
 
-# Funcionalidad (Cambio de color): 
-<img width="875" height="872" alt="image" src="https://github.com/user-attachments/assets/60e9a88a-37ba-4cdf-b85a-504b4d1bfb86" />
+Implementación del clásico juego de cartas UNO para entre 2 y 4 jugadores.
+El juego permite turnos alternados entre jugadores, cartas especiales y selección de color para comodines,
+todo desde una interfaz web interactiva.
+
+## Contexto
+
+Este proyecto nació como práctica de programación orientada a objetos en Python.
+La versión original usaba tkinter como interfaz gráfica de escritorio.
+Posteriormente fue migrado a Streamlit para poder desplegarlo como aplicación web accesible desde el navegador.
+
+## Tecnologías usadas
+
+- **Python** — Lenguaje principal
+- **Streamlit** — Librería para crear interfaces web
+- **Git / GitHub** — Control de versiones
+
+## Capturas
+
+
+
+## URL
+
+🌐 La aplicación está desplegada en Streamlit Cloud:  
+[https://fvf42p9fjzqwncyt3ncp69.streamlit.app](https://fvf42p9fjzqwncyt3ncp69.streamlit.app)
+
+
+
+
+
