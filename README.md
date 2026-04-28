@@ -20,6 +20,14 @@ Posteriormente fue migrado a Streamlit para poder desplegarlo como aplicación w
 
 ## Capturas
 
+### Menú principal
+<img width="1419" height="544" alt="image" src="https://github.com/user-attachments/assets/5f1c09f0-d340-4adf-b23a-3ca29dca1c61" />
+
+### Partida en curso
+<img width="1741" height="842" alt="image" src="https://github.com/user-attachments/assets/d5da2380-c98d-4296-8fdb-929f49098605" />
+
+
+
 
 
 ## URL
