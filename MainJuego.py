@@ -6,6 +6,9 @@ import Jugador
 st.set_page_config(page_title="UNO", layout="wide")
 st.markdown("""
     <style>
+    .stApp {
+    background-color: #270c41;
+}
     .carta {
         display: inline-block;
         border-radius: 10px;
@@ -52,9 +55,10 @@ st.markdown("""
 
 
     .boton-seleccionado button {
-    background-color: red !important;
-    color: white !important;
-    border: 2px solid darkred !important;
+
+        background-color: red !important;
+        color: white !important;
+        border: 2px solid darkred !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -84,6 +88,8 @@ def carta_html(numero, color, idx=None, pila=False):
         </div>
     """
 
+if "cambiando_turno" not in st.session_state:
+    st.session_state.cambiando_turno = False
 
 if "juego_iniciado" not in st.session_state:
     st.session_state.juego_iniciado = False
@@ -137,6 +143,7 @@ def avanzar_turno(saltar=False):
     salto = 2 if saltar else 1
     st.session_state.turno = (
         st.session_state.turno + salto) % len(st.session_state.jugadores)
+    st.session_state.cambiando_turno = True
 
 
 def jugar_carta(idx):
@@ -192,15 +199,17 @@ if not st.session_state.juego_iniciado:
             if seleccionado:
                 st.markdown('<div class="boton-seleccionado">',
                             unsafe_allow_html=True)
-            if st.button(num, key=f"btn_{num}"):
+            if st.button(num, key=f"btn_{num}", type="primary", width=200 ):
                 st.session_state.num_jugadores = int(num)
                 st.rerun()
             if seleccionado:
                 st.markdown('</div>', unsafe_allow_html=True)
 
-    if st.button("Iniciar juego", type="primary"):
+    if st.button("Iniciar juego", type="primary",):
         iniciar_juego(st.session_state.num_jugadores)
         st.rerun()
+
+
 
 else:
     # Ganador
@@ -263,14 +272,24 @@ else:
 
     st.divider()
 
-    st.markdown(
-        f"<h2 style='margin:0 0 20px 0'>Tu mano — Jugador {st.session_state.turno + 1}</h2>", unsafe_allow_html=True)
-    jugador = jugador_actual()
-    cols = st.columns(max(len(jugador.mano), 1))
-    for i, carta in enumerate(jugador.mano):
-        with cols[i]:
-            st.markdown(carta_html(carta.numero, carta.color,
-                        idx=i), unsafe_allow_html=True)
-            if st.button("Jugar", key=f"carta_{i}", help="intente hacer que al clickear en la carta se jugara pero no pude xd"):
-                jugar_carta(i)
-                st.rerun()
+
+    if st.session_state.cambiando_turno:
+        st.session_state.cambiando_turno = False
+        st.markdown(f"<h2 style='text-align:center'>⏳ Turno del Jugador {st.session_state.turno + 1}</h2>", unsafe_allow_html=True)
+        st.markdown("<h3 style='text-align:center'>Preparando turno...</h3>", unsafe_allow_html=True)
+        time.sleep(2)
+        st.rerun()
+    else:
+        st.markdown(
+            f"<h2 style='margin:0 0 20px 0'>Tu mano — Jugador {st.session_state.turno + 1}</h2>", unsafe_allow_html=True)
+        jugador = jugador_actual()
+        cols = st.columns(max(len(jugador.mano), 1))
+        for i, carta in enumerate(jugador.mano):
+            with cols[i]:
+                st.markdown(carta_html(carta.numero, carta.color, idx=i), unsafe_allow_html=True)
+                if st.button("Jugar", key=f"carta_{i}", help="intente hacer que al clickear en la carta se jugara pero no pude xd"):
+                    jugar_carta(i)
+                    st.rerun()
+
+
+    
